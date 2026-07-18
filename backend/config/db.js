@@ -1,43 +1,28 @@
-// //so this is the library which it will find from the node_modules 
-
-
-// const mongoose = require("mongoose");
-// console.log("db.js loaded");
-// //whenever the node find this file it will immediatly tries 
-// // to connect so instead we make a function so that whenever 
-// // we call it  , it will call then only and execute 
-// const connectDB = async () => {
-//     try {
-//         //await will wait until the connection is establised 
-//         console.log(process.env.MONGO_URI);
-//         await mongoose.connect(process.env.MONGO_URI);
-//         console.log("MongoDB connected succesfully ");
-
-//     }catch(error){
-//         console.log("Database Connection Failed");
-//         console.log(error.message);
-        
-//         //1 means the the program ended because of an error
-//         process.exit(1);
-//     }
-// };
-// console.log("About to export:", connectDB);
-// module.exports = connectDB;
+// Import Mongoose library to interact with MongoDB
 const mongoose = require("mongoose");
 
+// Function to establish a connection with MongoDB
+// We create a function instead of connecting immediately so that
+// we can decide when the connection should be made.
 const connectDB = async () => {
     try {
-        console.log("1. About to connect...");
 
+        // Connect to the MongoDB database using the connection string
+        // stored inside the .env file
         await mongoose.connect(process.env.MONGO_URI);
 
-        console.log("2. MongoDB Connected Successfully");
+        console.log("MongoDB Connected Successfully");
 
     } catch (error) {
-        console.log("3. Database Connection Failed");
-        console.log(error);
+
+        console.log("Database Connection Failed");
+        console.log(error.message);
+
+        // Stop the application if the database connection fails
+        // because the server cannot work without the database
         process.exit(1);
     }
 };
 
+// Export this function so it can be called from server.js
 module.exports = connectDB;

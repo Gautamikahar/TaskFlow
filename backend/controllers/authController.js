@@ -1,17 +1,21 @@
-
-
+// Import the User model to perform database operations
 const User = require("../models/User");
+
+// Library used to hash and compare passwords securely
 const bcrypt = require("bcrypt");
+
+// Library used to generate JWT tokens after successful login
 const jwt = require("jsonwebtoken");
-console.log("findOne:", User.findOne);
-console.log("Imported User:", User);
-console.log("Type:", typeof User);
-console.log("authController loaded");
+
+
+// ---------------------- LOGIN USER ----------------------
 const loginUser = async (req, res) => {
     try {
 
+        // Get email and password sent by the client
         const { email, password } = req.body;
 
+        // Check whether a user with this email exists
         const user = await User.findOne({ email });
 
         if (!user) {
@@ -21,6 +25,8 @@ const loginUser = async (req, res) => {
             });
         }
 
+        // Compare the entered password with the hashed password
+        // stored in the database
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -30,22 +36,24 @@ const loginUser = async (req, res) => {
             });
         }
 
+        // Generate a JWT token containing the user's id
+        // This token will be used to access protected routes
         const token = jwt.sign(
-    {
-        id: user._id,
-    },
-    process.env.JWT_SECRET,
-    {
-        expiresIn: "1d",
-    }
-);
+            {
+                id: user._id,
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "1d",
+            }
+        );
 
-res.status(200).json({
-    success: true,
-    message: "Login Successful",
-    token,
-});
-
+        // Send the token back to the client
+        res.status(200).json({
+            success: true,
+            message: "Login Successful",
+            token,
+        });
 
     } catch (error) {
 
@@ -57,11 +65,15 @@ res.status(200).json({
     }
 };
 
+
+// ---------------------- REGISTER USER ----------------------
 const registerUser = async (req, res) => {
     try {
 
+        // Get user details from the request body
         const { name, email, password } = req.body;
 
+        // Check if the email is already registered
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -71,14 +83,18 @@ const registerUser = async (req, res) => {
             });
         }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        // Convert the plain password into a secure hashed password
+        // before storing it in the database
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-const newUser = new User({
-    name,
-    email,
-    password: hashedPassword
-});
+        // Create a new user document
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword
+        });
 
+        // Save the new user into MongoDB
         await newUser.save();
 
         res.status(201).json({
@@ -96,6 +112,7 @@ const newUser = new User({
     }
 };
 
+// Export the controller functions so they can be used inside routes
 module.exports = {
     loginUser,
     registerUser,

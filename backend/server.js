@@ -1,60 +1,57 @@
+// Load environment variables from the .env file into process.env
 require("dotenv").config();
-const express = require("express")
+
+const express = require("express");
 const app = express();
+
+// Middleware to convert incoming JSON data into JavaScript objects
 app.use(express.json());
+
+// Import application routes
 const authRoutes = require("./routes/authRoutes");
-
-//node js doesn't automatically read .env
-//Read the .env file and put all values inside process.env
-
-const connectDB = require("./config/db");
-//const protect = require("./middleware/protect");
-const protect = require("./middleware/authMiddleware");
 const taskRoutes = require("./routes/taskRoutes");
-console.log(connectDB);
-console.log(typeof connectDB);
-//connectDB();
 
-console.log("Loading auth routes...");
-app.use("/api/auth",authRoutes);
+// Import database connection function
+const connectDB = require("./config/db");
+
+// Import middleware to protect private routes
+const protect = require("./middleware/authMiddleware");
+
+// Register all authentication related routes
+// Example: /api/auth/register , /api/auth/login
+app.use("/api/auth", authRoutes);
+
+// Register all task related routes
+// Example: /api/tasks
 app.use("/api/tasks", taskRoutes);
-// app.get("/profile", protect, (req, res) => {
 
-//     res.json({
-//         success: true,
-//         user: req.user
-//     });
-
-// });
+// Example of a protected route.
+// The protect middleware verifies the JWT token before allowing access.
 app.get("/api/profile", protect, (req, res) => {
     res.json({
         success: true,
         user: req.user
     });
 });
+
+// Simple route to check whether the server is running
 app.get("/", (req, res) => {
     res.send("Server is running...");
 });
-// app.get("/about",(req,res) => {
-//     res.send("about page");
-// });
 
-// app.get("/contact",(req,res) => {
-//     res.send("contact page");
-// });
-
-// app.listen(5000, () => {
-//     console.log("Server started on port 5000");
-// });
+// Connect to MongoDB first and then start the Express server
 const startServer = async () => {
-    console.log("A. Starting server...");
+    try {
+        await connectDB();
 
-    await connectDB();
+        app.listen(process.env.PORT, () => {
+            console.log(`Server running on port ${process.env.PORT}`);
+        });
 
-    console.log("B. Starting Express...");
-
-    app.listen(process.env.PORT, () => {
-        console.log(`C. Server running on port ${process.env.PORT}`);
-    });
+    } catch (error) {
+        console.log("Failed to start server");
+    }
 };
+
+// Start the application
 startServer();
